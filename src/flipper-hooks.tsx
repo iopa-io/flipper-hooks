@@ -54,7 +54,7 @@ function createReducer(props, reducerProp, defaultState?) {
   return [reducer, setReducer]
 }
 
-export function createFlipperPlugin<S, P>(
+export function createFlipperPlugin<P>(
   id: string,
   Child: React.FC<{}>,
   props: CreatePluginProps<P>
@@ -93,7 +93,7 @@ export function createFlipperPlugin<S, P>(
     setOnRegisterDevice
   }
 
-  return class Wrapper extends FlipperPlugin<S, any, P> {
+  return class Wrapper extends FlipperPlugin<FlipperPluginProps<P>, any, P> {
     static id = id
 
     static persistedStateReducer = persistedStateReducer
@@ -126,11 +126,13 @@ export function createFlipperPlugin<S, P>(
 
     static maxQueueSize = props.maxQueueSize || DEFAULT_MAX_QUEUE_SIZE
 
-    props: FlipperPluginProps<P>
-
     constructor(props) {
       super(props)
-      this.props = props
+      this.state = { ...props }
+    }
+
+    static getDerivedStateFromProps(props, state) {
+      return { ...props }
     }
 
     render() {
@@ -139,7 +141,7 @@ export function createFlipperPlugin<S, P>(
           id={id}
           client={this.client}
           {...reducerSetters}
-          {...this.props}
+          {...this.state}
         >
           <Child />
         </FlipperProvider>
