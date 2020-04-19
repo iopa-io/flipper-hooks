@@ -1,6 +1,6 @@
 {
   "name": "flipper-hooks",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "main": "src/index.ts",
   "license": "MIT",
   "author": "Guy Barnard, flipper-hooks contributors",

@@ -12,22 +12,59 @@ const FlipperContext = React.createContext<FlipperContextProps<any>>(null)
 export const useFlipper = () =>
   React.useContext<FlipperContextProps<any>>(FlipperContext)
 
-interface FlipperContextProps<T> extends FlipperPluginProps<T>, ReducerSetters {
+interface FlipperProviderProps<T>
+  extends FlipperPluginProps<T>,
+    ReducerSetters {
   id: string
   client: any
 }
 
-const FlipperProvider: React.FC<FlipperContextProps<any>> = ({
+interface FlipperContextProps<T> extends FlipperProviderProps<T> {
+  usePersistedState<T>(
+    key: string | number | symbol
+  ): [T, (state: T | ((state: T) => T)) => void]
+}
+
+const FlipperProvider: React.FC<FlipperProviderProps<any>> = ({
   id,
   client,
   children,
+  setPersistedState,
+  persistedState,
   ...rest
 }) => {
+  const usePersistedState = React.useCallback(
+    key => {
+      const currentMicroState = persistedState[key]
+
+      const setMicroState = state => {
+        let newMicroState
+        if (typeof state === 'function') {
+          newMicroState = state(currentMicroState)
+        } else {
+          newMicroState = state
+        }
+        setPersistedState({
+          [key]: newMicroState
+        })
+      }
+      return [currentMicroState, setMicroState] as [
+        any,
+        (state: any | ((state: any) => any)) => void
+      ]
+    },
+    [persistedState]
+  )
+
   const value = {
     id,
     client,
+    persistedState,
+    setPersistedState,
+    usePersistedState,
     ...rest
   }
+
   return (
     <FlipperContext.Provider value={value}>{children}</FlipperContext.Provider>
   )
